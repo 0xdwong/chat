@@ -10,8 +10,9 @@ import { ChatShareDialog } from '@/components/chat-share-dialog'
 import { useAIState, useActions, useUIState } from 'ai/rsc'
 import type { AI } from '@/lib/chat/actions'
 import { nanoid } from 'nanoid'
-import { UserMessage } from './stocks/message'
+import { BotMessage, UserMessage } from './stocks/message'
 import { History } from '@/lib/types'
+import axios from 'axios'
 
 export interface ChatPanelProps {
   id?: string
@@ -90,16 +91,16 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
                   })
                   return
                   // TODO: ===> 添加返回请求
-                  const responseMessage = await submitUserMessage(
-                    example.message
-                  )
-
-                  setMessages(currentMessages => [
-                    ...currentMessages,
-                    responseMessage
-                  ])
-
-                  saveLocal(responseMessage)
+                  const res = await axios.post('https://api.example.com/data');
+                  setMessages((currentMessages: any) => [...currentMessages, {
+                    id: nanoid(),
+                    display: <BotMessage content={res.data} />
+                  }])
+                  saveLocal(({
+                    id: nanoid(),
+                    message: res.data,
+                    provider: "bot"
+                  }))
                 }}
               >
                 <div className="text-sm font-semibold">{example.heading}</div>

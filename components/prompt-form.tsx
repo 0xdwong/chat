@@ -18,6 +18,7 @@ import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import { History } from '@/lib/types'
+import axios from 'axios'
 
 export function PromptForm({
   input,
@@ -34,14 +35,14 @@ export function PromptForm({
 
   function saveLocal(data: History) {
     try {
-      const index = Number(localStorage.getItem("chat-index"));
-      const history = JSON.parse(localStorage.getItem("chat-history") as string);
-      const arr = history ? history[index] : [];
-      arr.push(data);
-      history[index] = arr;
-      localStorage.setItem("chat-history", JSON.stringify(history));
+      const index = Number(localStorage.getItem('chat-index'))
+      const history = JSON.parse(localStorage.getItem('chat-history') as string)
+      const arr = history ? history[index] : []
+      arr.push(data)
+      history[index] = arr
+      localStorage.setItem('chat-history', JSON.stringify(history))
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
@@ -77,18 +78,27 @@ export function PromptForm({
         saveLocal({
           id: nanoid(),
           message: value,
-          provider: "user"
+          provider: 'user'
         })
         // Submit and get response message
         // const responseMessage = await submitUserMessage(value)
         // console.log(responseMessage);
         // TODO: ===> 添加返回请求
-        setMessages((currentMessages: any) => [...currentMessages, {
+        return
+        const res = await axios.post('https://api.example.com/data', value)
+        setMessages((currentMessages: any) => [
+          ...currentMessages,
+          {
+            id: nanoid(),
+            display: <BotMessage content={res.data} />
+          }
+        ])
+        saveLocal({
           id: nanoid(),
-          display: <BotMessage content={"test"} />
-        }])
+          message: res.data,
+          provider: 'bot'
+        })
       }}
-      
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
         <Tooltip>
@@ -98,13 +108,18 @@ export function PromptForm({
               size="icon"
               className="absolute left-0 top-[14px] size-8 rounded-full bg-background p-0 sm:left-4"
               onClick={() => {
-                const history = JSON.parse(localStorage.getItem("chat-history") as string);
+                const history = JSON.parse(
+                  localStorage.getItem('chat-history') as string
+                )
                 if (history.length === 10) {
-                  history.splice(0,1);
+                  history.splice(0, 1)
                 }
-                history.push([]);
-                localStorage.setItem("chat-history", JSON.stringify(history));
-                localStorage.setItem("chat-index", JSON.stringify(history.length - 1));
+                history.push([])
+                localStorage.setItem('chat-history', JSON.stringify(history))
+                localStorage.setItem(
+                  'chat-index',
+                  JSON.stringify(history.length - 1)
+                )
                 router.push('/new')
               }}
             >
