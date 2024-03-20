@@ -35,3 +35,11 @@ export interface User extends Record<string, any> {
   password: string
   salt: string
 }
+
+type Provider = "user" | "bot"
+
+export interface History {
+  id: string
+  message: string
+  provider: Provider
+}
