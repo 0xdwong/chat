@@ -5,7 +5,7 @@ import Textarea from 'react-textarea-autosize'
 
 import { useActions, useUIState } from 'ai/rsc'
 
-import { UserMessage } from './stocks/message'
+import { BotMessage, UserMessage } from './stocks/message'
 import { type AI } from '@/lib/chat/actions'
 import { Button } from '@/components/ui/button'
 import { IconArrowElbow, IconPlus } from '@/components/ui/icons'
@@ -17,6 +17,7 @@ import {
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
+import { History } from '@/lib/types'
 
 export function PromptForm({
   input,
@@ -30,6 +31,19 @@ export function PromptForm({
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
   const { submitUserMessage } = useActions()
   const [_, setMessages] = useUIState<typeof AI>()
+
+  function saveLocal(data: History) {
+    try {
+      const index = Number(localStorage.getItem("chat-index"));
+      const history = JSON.parse(localStorage.getItem("chat-history") as string);
+      const arr = history ? history[index] : [];
+      arr.push(data);
+      history[index] = arr;
+      localStorage.setItem("chat-history", JSON.stringify(history));
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -60,11 +74,21 @@ export function PromptForm({
             display: <UserMessage>{value}</UserMessage>
           }
         ])
-
+        saveLocal({
+          id: nanoid(),
+          message: value,
+          provider: "user"
+        })
         // Submit and get response message
-        const responseMessage = await submitUserMessage(value)
-        setMessages(currentMessages => [...currentMessages, responseMessage])
+        // const responseMessage = await submitUserMessage(value)
+        // console.log(responseMessage);
+        // TODO: ===> 添加返回请求
+        setMessages((currentMessages: any) => [...currentMessages, {
+          id: nanoid(),
+          display: <BotMessage content={"test"} />
+        }])
       }}
+      
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
         <Tooltip>
@@ -74,6 +98,13 @@ export function PromptForm({
               size="icon"
               className="absolute left-0 top-[14px] size-8 rounded-full bg-background p-0 sm:left-4"
               onClick={() => {
+                const history = JSON.parse(localStorage.getItem("chat-history") as string);
+                if (history.length === 10) {
+                  history.splice(0,1);
+                }
+                history.push([]);
+                localStorage.setItem("chat-history", JSON.stringify(history));
+                localStorage.setItem("chat-index", JSON.stringify(history.length - 1));
                 router.push('/new')
               }}
             >

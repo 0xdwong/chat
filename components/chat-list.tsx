@@ -16,7 +16,8 @@ export function ChatList({ messages, session, isShared }: ChatList) {
 
   return (
     <div className="relative mx-auto max-w-2xl px-4">
-      {!isShared && !session ? (
+      {/* 隐藏登陆跳转 */}
+      {/* {!isShared && !session ? (
         <div className="mb-8 rounded-lg border bg-white p-4 dark:bg-zinc-950">
           <p className="text-muted-foreground leading-normal">
             Please{' '}
@@ -30,7 +31,7 @@ export function ChatList({ messages, session, isShared }: ChatList) {
             to save and revisit your chat history!
           </p>
         </div>
-      ) : null}
+      ) : null} */}
 
       {messages.map((message, index) => (
         <div key={message.id}>

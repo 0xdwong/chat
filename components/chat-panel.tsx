@@ -11,6 +11,7 @@ import { useAIState, useActions, useUIState } from 'ai/rsc'
 import type { AI } from '@/lib/chat/actions'
 import { nanoid } from 'nanoid'
 import { UserMessage } from './stocks/message'
+import { History } from '@/lib/types'
 
 export interface ChatPanelProps {
   id?: string
@@ -48,6 +49,19 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
     }
   ]
 
+  function saveLocal(data: History) {
+    try {
+      const index = Number(localStorage.getItem("chat-index"));
+      const history = JSON.parse(localStorage.getItem("chat-history") as string);
+      const arr = history ? history[index] : [];
+      arr.push(data);
+      history[index] = arr;
+      localStorage.setItem("chat-history", JSON.stringify(history));
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div className="fixed inset-x-0 bottom-0 w-full bg-gradient-to-b from-muted/30 from-0% to-muted/30 to-50% duration-300 ease-in-out animate-in dark:from-background/10 dark:from-10% dark:to-background/80 peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
       <ButtonScrollToBottom />
@@ -69,7 +83,13 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
                       display: <UserMessage>{example.message}</UserMessage>
                     }
                   ])
-
+                  saveLocal({
+                    id: nanoid(),
+                    message: example.message,
+                    provider: "user"
+                  })
+                  return
+                  // TODO: ===> 添加返回请求
                   const responseMessage = await submitUserMessage(
                     example.message
                   )
@@ -78,6 +98,8 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
                     ...currentMessages,
                     responseMessage
                   ])
+
+                  saveLocal(responseMessage)
                 }}
               >
                 <div className="text-sm font-semibold">{example.heading}</div>
