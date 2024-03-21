@@ -7,12 +7,13 @@ import { BotMessage, UserMessage } from './stocks/message'
 import { History } from '@/lib/types'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { nanoid } from 'nanoid'
 
 export function SidebarHistory() {
   const router = useRouter()
   const [messages, setMessages] = useUIState<typeof AI>()
   let [chatIndex, setChatIndex] = useState(0);
-  let [history, setHistory] = useState([[]])
+  let [history, setHistory] = useState([{list: []}])
 
     //   清除message => 初始化对应chat数据
   function toggleChat(index: number) {
@@ -24,7 +25,7 @@ export function SidebarHistory() {
     event.stopPropagation();
     const local = JSON.parse(localStorage.getItem('chat-history') as string);
     if (local.length === 1) {
-        localStorage.setItem("chat-history", JSON.stringify([[]]));
+        localStorage.setItem("chat-history", JSON.stringify([{id: nanoid(), list: []}]));
         localStorage.setItem("chat-index", "0");
         router.push('/new')
         return
@@ -39,7 +40,7 @@ export function SidebarHistory() {
     const index = Number(localStorage.getItem('chat-index'))
     chatIndex = index;
     setChatIndex(chatIndex);
-    local[index]?.map((e: History) => {
+    local[index]?.list.map((e: History) => {
       const obj =
         e.provider === 'bot'
           ? {
@@ -57,7 +58,7 @@ export function SidebarHistory() {
   }
 
   function initLocal() {
-    localStorage.setItem('chat-history', JSON.stringify([[]]))
+    localStorage.setItem('chat-history', JSON.stringify([{id: nanoid(), list: []}]))
     localStorage.setItem('chat-index', '0')
   }
 
@@ -75,7 +76,7 @@ export function SidebarHistory() {
           className={`px-5 py-3 flex justify-between items-center ${chatIndex === index ? "bg-cyan-600" : ""} gap-10 border-1 border-slate-300 cursor-pointer hover:bg-cyan-600`}
         >
           <p className="text-white truncate ...">
-            {e[0]?.message || 'New Chat'}
+            {e.list[0]?.message || 'New Chat'}
           </p>
           <Image
             className="cursor-pointer"

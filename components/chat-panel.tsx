@@ -50,16 +50,59 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
     }
   ]
 
-  function saveLocal(data: History) {
+  function getHistryId() {
+    const history = JSON.parse(localStorage.getItem("chat-history") as string);
+    const index = JSON.parse(localStorage.getItem("chat-index") as string);
+    return history[index].id
+  }
+
+  async function sendMsg(msg: string) {
+    setMessages(currentMessages => [
+      ...currentMessages,
+      {
+        id: nanoid(),
+        display: <UserMessage>{msg}</UserMessage>
+      }
+    ])
+    saveLocal({
+      id: nanoid(),
+      message: msg,
+      provider: 'user'
+    })
     try {
-      const index = Number(localStorage.getItem("chat-index"));
-      const history = JSON.parse(localStorage.getItem("chat-history") as string);
-      const arr = history ? history[index] : [];
-      arr.push(data);
-      history[index] = arr;
-      localStorage.setItem("chat-history", JSON.stringify(history));
+      const res = await axios.post(process.env.NEXT_PUBLIC_BASE_URL as string, {
+        input: { question: msg },
+        uuid: getHistryId()
+      })
+      const data = res.data;
+      const content = data.code === 0 ? data.data : data.msg;
+      setMessages((currentMessages: any) => [
+        ...currentMessages,
+        {
+          id: nanoid(),
+          display: <BotMessage content={content} />
+        }
+      ])
+      saveLocal({
+        id: nanoid(),
+        message: content,
+        provider: 'bot'
+      })
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  function saveLocal(data: History) {
+    try {
+      const index = Number(localStorage.getItem('chat-index'))
+      const history = JSON.parse(localStorage.getItem('chat-history') as string)
+      const arr = history ? history[index].list : []
+      arr.push(data)
+      history[index].list = arr
+      localStorage.setItem('chat-history', JSON.stringify(history))
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -77,30 +120,8 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
                   index > 1 && 'hidden md:block'
                 }`}
                 onClick={async () => {
-                  setMessages(currentMessages => [
-                    ...currentMessages,
-                    {
-                      id: nanoid(),
-                      display: <UserMessage>{example.message}</UserMessage>
-                    }
-                  ])
-                  saveLocal({
-                    id: nanoid(),
-                    message: example.message,
-                    provider: "user"
-                  })
-                  return
-                  // TODO: ===> 添加返回请求
-                  const res = await axios.post('https://api.example.com/data');
-                  setMessages((currentMessages: any) => [...currentMessages, {
-                    id: nanoid(),
-                    display: <BotMessage content={res.data} />
-                  }])
-                  saveLocal(({
-                    id: nanoid(),
-                    message: res.data,
-                    provider: "bot"
-                  }))
+                  // start sendmsg
+                  sendMsg(example.message)
                 }}
               >
                 <div className="text-sm font-semibold">{example.heading}</div>

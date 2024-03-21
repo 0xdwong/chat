@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
-import { useActions, useUIState } from 'ai/rsc'
+import { useUIState } from 'ai/rsc'
 
 import { BotMessage, UserMessage } from './stocks/message'
 import { type AI } from '@/lib/chat/actions'
@@ -30,16 +30,61 @@ export function PromptForm({
   const router = useRouter()
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { submitUserMessage } = useActions()
   const [_, setMessages] = useUIState<typeof AI>()
+
+  function getHistryId() {
+    const history = JSON.parse(localStorage.getItem("chat-history") as string);
+    const index = JSON.parse(localStorage.getItem("chat-index") as string);
+    return history[index].id
+  }
+
+  async function sendMsg(msg: string) {
+    // Optimistically add user message UI
+    setMessages(currentMessages => [
+      ...currentMessages,
+      {
+        id: nanoid(),
+        display: <UserMessage>{msg}</UserMessage>
+      }
+    ])
+    saveLocal({
+      id: nanoid(),
+      message: msg,
+      provider: 'user'
+    })
+    // Submit and get response message
+
+    try {
+      const res = await axios.post(process.env.NEXT_PUBLIC_BASE_URL as string, {
+        input: { question: msg },
+        uuid: getHistryId()
+      })
+      const data = res.data;
+      const content = data.code === 0 ? data.data : data.msg;
+      setMessages((currentMessages: any) => [
+        ...currentMessages,
+        {
+          id: nanoid(),
+          display: <BotMessage content={content} />
+        }
+      ])
+      saveLocal({
+        id: nanoid(),
+        message: content,
+        provider: 'bot'
+      })
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   function saveLocal(data: History) {
     try {
       const index = Number(localStorage.getItem('chat-index'))
       const history = JSON.parse(localStorage.getItem('chat-history') as string)
-      const arr = history ? history[index] : []
+      const arr = history ? history[index].list : []
       arr.push(data)
-      history[index] = arr
+      history[index].list = arr
       localStorage.setItem('chat-history', JSON.stringify(history))
     } catch (error) {
       console.log(error)
@@ -67,37 +112,8 @@ export function PromptForm({
         setInput('')
         if (!value) return
 
-        // Optimistically add user message UI
-        setMessages(currentMessages => [
-          ...currentMessages,
-          {
-            id: nanoid(),
-            display: <UserMessage>{value}</UserMessage>
-          }
-        ])
-        saveLocal({
-          id: nanoid(),
-          message: value,
-          provider: 'user'
-        })
-        // Submit and get response message
-        // const responseMessage = await submitUserMessage(value)
-        // console.log(responseMessage);
-        // TODO: ===> 添加返回请求
-        return
-        const res = await axios.post('https://api.example.com/data', value)
-        setMessages((currentMessages: any) => [
-          ...currentMessages,
-          {
-            id: nanoid(),
-            display: <BotMessage content={res.data} />
-          }
-        ])
-        saveLocal({
-          id: nanoid(),
-          message: res.data,
-          provider: 'bot'
-        })
+        // start sendmsg
+        sendMsg(value)
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
@@ -108,13 +124,17 @@ export function PromptForm({
               size="icon"
               className="absolute left-0 top-[14px] size-8 rounded-full bg-background p-0 sm:left-4"
               onClick={() => {
+                // 添加会话
                 const history = JSON.parse(
                   localStorage.getItem('chat-history') as string
                 )
                 if (history.length === 10) {
                   history.splice(0, 1)
                 }
-                history.push([])
+                history.push({
+                  id: nanoid(),
+                  list: []
+                })
                 localStorage.setItem('chat-history', JSON.stringify(history))
                 localStorage.setItem(
                   'chat-index',
