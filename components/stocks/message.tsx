@@ -7,8 +7,8 @@ import { CodeBlock } from '../ui/codeblock'
 import { MemoizedReactMarkdown } from '../markdown'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
-import { StreamableValue } from 'ai/rsc'
-import { useStreamableText } from '@/lib/hooks/use-streamable-text'
+import { useEffect, useState } from 'react'
+import { History } from '@/lib/types'
 
 // Different types of message bubbles.
 
@@ -29,10 +29,66 @@ export function BotMessage({
   content,
   className
 }: {
-  content: string | StreamableValue<string>
+  content: any
   className?: string
 }) {
-  const text = useStreamableText(content)
+  // const text = useStreamableText(content)
+  let [text, setText] = useState('')
+
+  function saveLocal(data: History) {
+    try {
+      const index = Number(localStorage.getItem('chat-index'))
+      const history = JSON.parse(localStorage.getItem('chat-history') as string)
+      const arr = history ? history[index].list : []
+      arr.push(data)
+      history[index].list = arr
+      localStorage.setItem('chat-history', JSON.stringify(history))
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  async function init() {
+    await fetch(process.env.NEXT_PUBLIC_BASE_URL as string, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(content)
+    })
+      .then(response => response.body)
+      .then((body: any) => {
+        const reader = body.getReader()
+        // 读取stream数据
+        reader.read().then(function processResult(result: any) {
+          if (result.done) {
+            saveLocal({
+              id: content.uuid,
+              message: text,
+              provider: 'bot'
+            })
+            return
+          }
+          const newText = new TextDecoder().decode(result.value, {
+            stream: true
+          })
+          text = text.concat(newText)
+          setText(text)
+          return reader.read().then(processResult)
+        })
+      })
+  }
+
+  useEffect(() => {
+    if (content) {
+      if (typeof content === 'string') {
+        text = content
+        setText(text)
+      } else {
+        init()
+      }
+    }
+  }, [content])
 
   return (
     <div className={cn('group relative flex items-start md:-ml-12', className)}>
@@ -40,47 +96,53 @@ export function BotMessage({
         <IconOpenAI />
       </div>
       <div className="ml-4 flex-1 space-y-2 overflow-hidden px-1">
-        <MemoizedReactMarkdown
-          className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
-          remarkPlugins={[remarkGfm, remarkMath]}
-          components={{
-            p({ children }) {
-              return <p className="mb-2 last:mb-0">{children}</p>
-            },
-            code({ node, inline, className, children, ...props }) {
-              if (children.length) {
-                if (children[0] == '▍') {
+        {text ? (
+          <MemoizedReactMarkdown
+            className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
+            remarkPlugins={[remarkGfm, remarkMath]}
+            components={{
+              p({ children }) {
+                return <p className="mb-2 last:mb-0">{children}</p>
+              },
+              code({ node, inline, className, children, ...props }) {
+                if (children.length) {
+                  if (children[0] == '▍') {
+                    return (
+                      <span className="mt-1 animate-pulse cursor-default">
+                        ▍
+                      </span>
+                    )
+                  }
+
+                  children[0] = (children[0] as string).replace('`▍`', '▍')
+                }
+
+                const match = /language-(\w+)/.exec(className || '')
+
+                if (inline) {
                   return (
-                    <span className="mt-1 animate-pulse cursor-default">▍</span>
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
                   )
                 }
 
-                children[0] = (children[0] as string).replace('`▍`', '▍')
-              }
-
-              const match = /language-(\w+)/.exec(className || '')
-
-              if (inline) {
                 return (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
+                  <CodeBlock
+                    key={Math.random()}
+                    language={(match && match[1]) || ''}
+                    value={String(children).replace(/\n$/, '')}
+                    {...props}
+                  />
                 )
               }
-
-              return (
-                <CodeBlock
-                  key={Math.random()}
-                  language={(match && match[1]) || ''}
-                  value={String(children).replace(/\n$/, '')}
-                  {...props}
-                />
-              )
-            }
-          }}
-        >
-          {text}
-        </MemoizedReactMarkdown>
+            }}
+          >
+            {text}
+          </MemoizedReactMarkdown>
+        ) : (
+          spinner
+        )}
       </div>
     </div>
   )

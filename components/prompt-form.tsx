@@ -18,7 +18,6 @@ import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 import { History } from '@/lib/types'
-import axios from 'axios'
 
 export function PromptForm({
   input,
@@ -33,8 +32,8 @@ export function PromptForm({
   const [_, setMessages] = useUIState<typeof AI>()
 
   function getHistryId() {
-    const history = JSON.parse(localStorage.getItem("chat-history") as string);
-    const index = JSON.parse(localStorage.getItem("chat-index") as string);
+    const history = JSON.parse(localStorage.getItem('chat-history') as string)
+    const index = JSON.parse(localStorage.getItem('chat-index') as string)
     return history[index].id
   }
 
@@ -55,26 +54,22 @@ export function PromptForm({
     // Submit and get response message
 
     try {
-      const res = await axios.post(process.env.NEXT_PUBLIC_BASE_URL as string, {
-        input: { question: msg },
-        uuid: getHistryId()
-      })
-      const data = res.data;
-      const content = data.code === 0 ? data.data : data.msg;
       setMessages((currentMessages: any) => [
         ...currentMessages,
         {
           id: nanoid(),
-          display: <BotMessage content={content} />
+          display: (
+            <BotMessage
+              content={{
+                input: { question: msg },
+                uuid: getHistryId()
+              }}
+            />
+          )
         }
       ])
-      saveLocal({
-        id: nanoid(),
-        message: content,
-        provider: 'bot'
-      })
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
