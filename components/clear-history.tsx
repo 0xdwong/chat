@@ -21,12 +21,12 @@ import { IconSpinner } from '@/components/ui/icons'
 
 interface ClearHistoryProps {
   isEnabled: boolean
-  clearChats: () => ServerActionResult<void>
+  // clearChats: () => ServerActionResult<void>
 }
 
 export function ClearHistory({
   isEnabled = false,
-  clearChats
+  // clearChats
 }: ClearHistoryProps) {
   const [open, setOpen] = React.useState(false)
   const [isPending, startTransition] = React.useTransition()
@@ -54,15 +54,15 @@ export function ClearHistory({
             disabled={isPending}
             onClick={event => {
               event.preventDefault()
-              startTransition(async () => {
-                const result = await clearChats()
-                if (result && 'error' in result) {
-                  toast.error(result.error)
-                  return
-                }
+              // startTransition(async () => {
+              //   const result = await clearChats()
+              //   if (result && 'error' in result) {
+              //     toast.error(result.error)
+              //     return
+              //   }
 
-                setOpen(false)
-              })
+              //   setOpen(false)
+              // })
             }}
           >
             {isPending && <IconSpinner className="mr-2 animate-spin" />}
