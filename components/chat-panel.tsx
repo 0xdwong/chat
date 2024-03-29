@@ -70,24 +70,16 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
       provider: 'user'
     })
     try {
-      const res = await axios.post(process.env.NEXT_PUBLIC_BASE_URL as string, {
-        input: { question: msg },
-        uuid: getHistryId()
-      })
-      const data = res.data;
-      const content = data.code === 0 ? data.data : data.msg;
       setMessages((currentMessages: any) => [
         ...currentMessages,
         {
           id: nanoid(),
-          display: <BotMessage content={content} />
+          display: <BotMessage content={{
+            input: { question: msg },
+            uuid: getHistryId()
+          }} />
         }
       ])
-      saveLocal({
-        id: nanoid(),
-        message: content,
-        provider: 'bot'
-      })
     } catch (error) {
       console.log(error);
     }
