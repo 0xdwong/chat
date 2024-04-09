@@ -30,23 +30,13 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
     {
       heading: 'What are the',
       subheading: 'trending memecoins today?',
-      message: `What are the trending memecoins today?`
+      message: `What are the trending memecoins on Solana today?`
     },
     {
-      heading: 'What is the price of',
-      subheading: 'DOGE in the stock market?',
-      message: 'What is the price of DOGE in the stock market?'
+      heading: 'Why is solana',
+      subheading: ' so congested these days?',
+      message: 'Why is solana so congested these days?'
     },
-    {
-      heading: 'I would like to buy',
-      subheading: '42 DOGE coins',
-      message: `I would like to buy 42 DOGE coins`
-    },
-    {
-      heading: 'What are some',
-      subheading: `recent events about DOGE?`,
-      message: `What are some recent events about DOGE?`
-    }
   ]
 
   function getHistryId() {
