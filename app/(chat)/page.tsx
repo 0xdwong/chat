@@ -5,7 +5,7 @@ import { Session } from '@/lib/types'
 import { SidebarHistory } from '@/components/sidebar-history'
 
 export const metadata = {
-  title: 'Next.js AI Chatbot'
+  title: 'Solaigent'
 }
 
 export default async function IndexPage() {
