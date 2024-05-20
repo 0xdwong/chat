@@ -11,8 +11,8 @@ import { Toaster } from '@/components/ui/sonner'
 export const metadata = {
   metadataBase: new URL(`https://${process.env.VERCEL_URL}`),
   title: {
-    default: 'Solaigent',
-    template: `%s - Solana AI agent`
+    default: 'Aigent',
+    template: `%s - Aigent`
   },
   description: 'An AI-powered chatbot template built with Next.js and Vercel.',
   icons: {

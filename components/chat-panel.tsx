@@ -28,14 +28,14 @@ export function ChatPanel({ id, title, input, setInput }: ChatPanelProps) {
 
   const exampleMessages = [
     {
-      heading: 'What are the',
-      subheading: 'trending memecoins today?',
-      message: `What are the trending memecoins on Solana today?`
+      heading: 'What is blockchain',
+      subheading: 'and what does it do?',
+      message: `What is blockchain and what does it do?`
     },
     {
-      heading: 'Why is solana',
-      subheading: ' so congested these days?',
-      message: 'Why is solana so congested these days?'
+      heading: 'Why is AI agent',
+      subheading: 'and what does it do?',
+      message: 'Why is AI agent and what does it do?'
     },
   ]
 

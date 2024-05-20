@@ -5,7 +5,7 @@ import { Session } from '@/lib/types'
 import { SidebarHistory } from '@/components/sidebar-history'
 
 export const metadata = {
-  title: 'Solaigent'
+  title: 'Aigent'
 }
 
 export default async function IndexPage() {

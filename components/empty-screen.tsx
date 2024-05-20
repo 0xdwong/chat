@@ -24,10 +24,10 @@ export function EmptyScreen({ setInput }: Pick<UseChatHelpers, 'setInput'>) {
     <div className="mx-auto max-w-2xl px-4">
       <div className="flex flex-col gap-2 rounded-lg border bg-background p-8">
         <h1 className="text-lg font-semibold">
-          Welcome to Solaigent!
+          Welcome to Aigent!
         </h1>
         <p className="leading-normal text-muted-foreground">
-          Solaigen is an AI agent based on Solana, aimed at providing users with various functions and services. The project will combine artificial intelligence and blockchain technology to provide users with efficient, intelligent solutions.
+          Aigent is an AI agent. The project will combine artificial intelligence and blockchain technology to provide users with efficient, intelligent solutions.
         </p>
       </div>
     </div>
